@@ -1,0 +1,23 @@
+#!/sbin/openrc-run
+
+description="Pathfinder traffic control"
+
+depend() {
+    need net
+    after nftables
+}
+
+start() {
+    ebegin "Starting Pathfinder traffic control"
+    /etc/tc.qos
+    eend $?
+}
+
+stop() {
+    ebegin "Stopping Pathfinder traffic control"
+    # Clear the queues on both interfaces.
+    
+    tc qdisc del dev eth0 root 2>/dev/null || true
+    tc qdisc del dev wlan0 root 2>/dev/null || true
+    eend 0
+}

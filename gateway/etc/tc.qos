@@ -1,0 +1,48 @@
+#!/bin/sh
+# Traffic control (QoS) for Pathfinder.
+# Prioritises SSH and DNS over bulk traffic.
+# eth0 (WAN) upload cap, wlan0 (LAN) download cap.
+
+set -e
+
+WAN_IFACE=${1:-eth0}
+LAN_IFACE=${2:-wlan0}
+UP=${UPLOAD_KBIT:-110000}
+DOWN=${DOWNLOAD_KBIT:-130000}
+
+# WAN (upload).
+tc qdisc del dev "$WAN_IFACE" root 2>/dev/null || true
+tc qdisc add dev "$WAN_IFACE" root handle 1: htb default 20
+tc class add dev "$WAN_IFACE" parent 1: classid 1:1 \
+    htb rate "${UP}kbit" ceil "${UP}kbit"
+
+tc class add dev "$WAN_IFACE" parent 1:1 classid 1:10 \
+    htb rate "$((UP * 30 / 100))kbit" ceil "${UP}kbit" prio 0
+tc class add dev "$WAN_IFACE" parent 1:1 classid 1:20 \
+    htb rate "$((UP * 70 / 100))kbit" ceil "${UP}kbit" prio 1
+
+tc qdisc add dev "$WAN_IFACE" parent 1:10 handle 10: fq_codel
+tc qdisc add dev "$WAN_IFACE" parent 1:20 handle 20: fq_codel
+
+tc filter add dev "$WAN_IFACE" parent 1:0 prio 0 protocol ip u32 \
+    match ip protocol 6 0xff \
+    match ip dport 22 0xffff \
+    flowid 1:10
+tc filter add dev "$WAN_IFACE" parent 1:0 prio 1 protocol ip u32 \
+    match ip protocol 17 0xff \
+    match ip dport 53 0xffff \
+    flowid 1:10
+
+# LAN (download).
+tc qdisc del dev "$LAN_IFACE" root 2>/dev/null || true
+tc qdisc add dev "$LAN_IFACE" root handle 1: htb default 20
+tc class add dev "$LAN_IFACE" parent 1: classid 1:1 \
+    htb rate "${DOWN}kbit" ceil "${DOWN}kbit"
+
+tc class add dev "$LAN_IFACE" parent 1:1 classid 1:10 \
+    htb rate "$((DOWN * 30 / 100))kbit" ceil "${DOWN}kbit" prio 0
+tc class add dev "$LAN_IFACE" parent 1:1 classid 1:20 \
+    htb rate "$((DOWN * 70 / 100))kbit" ceil "${DOWN}kbit" prio 1
+
+tc qdisc add dev "$LAN_IFACE" parent 1:10 handle 10: fq_codel
+tc qdisc add dev "$LAN_IFACE" parent 1:20 handle 20: fq_codel

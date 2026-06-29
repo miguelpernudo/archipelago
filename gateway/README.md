@@ -96,11 +96,14 @@ And for that very reason, the subnet's IP address is hardcoded (192.168.2.1). It
 │   ├── dnsmasq.conf
 │   ├── hostapd
 │   │   └── hostapd.conf
+│   ├── init.d
+│   │   └── pathfinder-tc
 │   ├── logrotate.d
 │   │   └── dnscrypt-proxy
 │   ├── network
 │   │   └── interfaces
-│   └── nftables.nft
+│   ├── nftables.nft
+│   └── tc.qos
 ├── install.sh
 ├── LICENSE
 ├── README.md
@@ -112,13 +115,14 @@ And for that very reason, the subnet's IP address is hardcoded (192.168.2.1). It
 **hostapd**: Turns `wlan0` into a Wi-Fi AP (SSID, channel, WPA2). `rc-service hostapd status`
 
 **dnsmasq**: DHCP server for Wi-Fi clients plus DNS forwarding to dnscrypt-proxy. `rc-service dnsmasq status`
- 
-**dnscrypt-proxy**: Encrypts DNS queries and blocks ads via blocklist. `rc-service dnscrypt-proxy status` 
+
+**dnscrypt-proxy**: Encrypts DNS queries and blocks ads via blocklist. `rc-service dnscrypt-proxy status`
 
 **nftables** firewall: NAT, SSH (LAN only), DNS/DHCP on wlan0. `nft list ruleset`
 
-**netdata** (installed via apk): Monitoring dashboard on `http://<device-ip>:19999` or `http://<gateway-ip>:19999` (LAN only). `rc-service netdata status`
-To change binding or ports for netdata, refer to the [official docs](https://learn.netdata.cloud/docs/) and update `etc/nftables.nft` accordingly.
+**Traffic control**: HTB hierarchy prioritises SSH, DNS, and web traffic, rate-limits bulk. Shaped on both `eth0` (upload) and `wlan0` (download). `rc-service pathfinder-tc status`
+
+> **Roadmap:** eBPF-based metrics exporter.
 
 ## Firewall rules
 
@@ -163,7 +167,7 @@ rc-service hostapd status
 rc-service dnsmasq status
 rc-service dnscrypt-proxy status
 rc-service nftables status
-rc-service netdata status
+rc-service pathfinder-tc status
 
 # Verify Wi-Fi interface
 iw dev wlan0 info

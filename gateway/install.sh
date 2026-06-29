@@ -19,10 +19,10 @@ echo "[1/7] Installing packages..."
 sed -i 's|#http://dl-cdn.alpinelinux.org/alpine/\(v[0-9.]*\)/community|http://dl-cdn.alpinelinux.org/alpine/\1/community|' /etc/apk/repositories
 apk update
 
-apk add --no-cache hostapd dnsmasq dnscrypt-proxy nftables iw logrotate gettext tcpdump wget netdata
+apk add --no-cache hostapd dnsmasq dnscrypt-proxy nftables iw logrotate gettext tcpdump wget
 
-# This is crucial for routing to work. 
-# It forwards packets from wlan0 to eth0.
+# This is crucial for routing to work, 
+# it forwards packets from wlan0 to eth0.
 echo "[2/7] Configuring IP forwarding..."
 echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-forwarding.conf
 sysctl -p /etc/sysctl.d/99-forwarding.conf > /dev/null
@@ -42,6 +42,8 @@ cp "$REPO_DIR/etc/dnscrypt-proxy/dnscrypt-proxy.toml" /etc/dnscrypt-proxy/dnscry
 cp "$REPO_DIR/etc/nftables.nft"               /etc/nftables.nft
 cp "$REPO_DIR/etc/logrotate.d/dnscrypt-proxy" /etc/logrotate.d/dnscrypt-proxy
 cp "$REPO_DIR/etc/logrotate.d/pathfinder"     /etc/logrotate.d/pathfinder
+cp "$REPO_DIR/etc/tc.qos"                     /etc/tc.qos
+chmod +x /etc/tc.qos
 
 echo "[4/7] Installing blocklist..."
 wget -q -O /etc/dnscrypt-proxy/blocked-names.txt https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/pro.txt || echo "  [WARNING] Blocklist download failed."
@@ -70,10 +72,16 @@ ip addr add "${DEVICE_IP}/24" dev eth0 2>/dev/null || echo "  eth0 IP already as
 ip addr add 192.168.2.1/24 dev wlan0 2>/dev/null || echo "  wlan0 IP already assigned"
 
 echo "[6/7] Enabling and starting services..."
-for svc in hostapd dnsmasq dnscrypt-proxy nftables netdata crond; do
+for svc in hostapd dnsmasq dnscrypt-proxy nftables crond; do
     rc-update add "$svc" default > /dev/null 2>&1 || true
     rc-service "$svc" start > /dev/null 2>&1 || true
 done
+
+# Pathfinder-specific services
+cp "$REPO_DIR/etc/init.d/pathfinder-tc" /etc/init.d/pathfinder-tc
+chmod +x /etc/init.d/pathfinder-tc
+rc-update add pathfinder-tc default > /dev/null 2>&1 || true
+rc-service pathfinder-tc start > /dev/null 2>&1 || true
 
 # Give dnscrypt-proxy time to load the blocklist before testing it.
 sleep 2
@@ -85,7 +93,7 @@ else
 fi
 
 # Configure OpenRC to restart services if they crash.
-for svc in netdata hostapd dnsmasq dnscrypt-proxy nftables; do
+for svc in hostapd dnsmasq dnscrypt-proxy nftables pathfinder-tc; do
     touch /etc/conf.d/"$svc"
     if ! grep -q "rc_crash_action" /etc/conf.d/"$svc" 2>/dev/null; then
         echo 'rc_crash_action="restart"' >> /etc/conf.d/"$svc"

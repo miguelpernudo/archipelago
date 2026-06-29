@@ -18,15 +18,13 @@ table inet filter {
         } accept;
         ip6 nexthdr icmpv6 limit rate 10/second burst 20 packets accept;
 
-        # SSH (only LAN)
+        # SSH (only LAN).
         tcp dport 22 meta nfproto ipv4 ip saddr { $LAN } ct state new meter ssh_brute { ip saddr timeout 2m limit rate 3/minute burst 5 packets } accept;
 
-        # DNS and  DHCP (wlan0)
+        # DNS and  DHCP (wlan0).
         iif wlan0 udp dport { 53, 67 } accept;
         iif wlan0 tcp dport 53 accept;
 
-        # Netdata (LAN only)
-        ip saddr $LAN tcp dport 19999 accept;
     }
 
     chain forward {
