@@ -12,6 +12,7 @@
       security = {
         admin_user               = "admin";
         admin_password           = "$__file{${config.sops.secrets.grafana_password.path}}";
+        secret_key               = "$__file{${config.sops.secrets.grafana_secret_key.path}}";
         disable_gravatar         = true;
         cookie_secure            = true;
       };
@@ -95,5 +96,8 @@
     ];
   };
 
-  sops.secrets.grafana_password = {};
+  sops.secrets = {
+    grafana_password = {};
+    grafana_secret_key = {};
+  };
 }
