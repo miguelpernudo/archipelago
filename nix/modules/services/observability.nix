@@ -1,6 +1,89 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  blackboxConfig = pkgs.writeText "blackbox.yml" (builtins.toJSON {
+    modules = {
+      http_2xx.prober = "http";
+      icmp.prober     = "icmp";
+    };
+  });
+in
 {
+  services.victoriametrics = {
+    enable           = true;
+    listenAddress    = ":8428";
+    retentionPeriod  = "30d";
+
+    prometheusConfig.scrape_configs = [
+      {
+        job_name  = "node";
+        static_configs = [{
+          targets = [ "localhost:9100" ];
+        }];
+      }
+      {
+        job_name = "blackbox";
+        metrics_path = "/probe";
+        params.module = [ "http_2xx" "icmp" ];
+        static_configs = [{
+          targets = [
+            "http://localhost:30800"
+            "http://localhost:30300"
+            "http://127.0.0.1:3001"
+            "1.1.1.1"
+          ];
+        }];
+        relabel_configs = [
+          { source_labels = [ "__address__" ]; target_label = "__param_target"; }
+          { source_labels = [ "__param_target" ]; target_label = "instance"; }
+          { target_label = "__address__"; replacement = "127.0.0.1:9115"; }
+        ];
+      }
+    ];
+  };
+
+  systemd.services.prometheus-node-exporter = {
+    description = "Prometheus node exporter";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStart = lib.concatStringsSep " " [
+        "${pkgs.prometheus-node-exporter}/bin/node_exporter"
+        "--web.listen-address=:9100"
+        "--collector.cpu" "--collector.diskstats" "--collector.filesystem"
+        "--collector.loadavg" "--collector.meminfo" "--collector.netdev"
+        "--collector.systemd" "--collector.thermal_zone"
+      ];
+      Restart = "always";
+      RestartSec = 1;
+      DynamicUser = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      NoNewPrivileges = true;
+    };
+  };
+
+  systemd.services.prometheus-blackbox-exporter = {
+    description = "Prometheus blackbox exporter";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStart = lib.concatStringsSep " " [
+        "${pkgs.prometheus-blackbox-exporter}/bin/blackbox_exporter"
+        "--web.listen-address=:9115"
+        "--config.file=${blackboxConfig}"
+      ];
+      Restart = "always";
+      RestartSec = 1;
+      DynamicUser = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      NoNewPrivileges = true;
+      CapabilityBoundingSet = [ "CAP_NET_RAW" ];
+      AmbientCapabilities = [ "CAP_NET_RAW" ];
+    };
+  };
+
   services.grafana = {
     enable = true;
     settings = {
@@ -20,76 +103,17 @@
     };
 
     provision.datasources.settings.datasources = [{
-      name      = "Prometheus";
+      name      = "VictoriaMetrics";
       type      = "prometheus";
-      url       = "http://localhost:${toString config.services.prometheus.port}";
+      url       = "http://localhost:8428";
       isDefault = true;
     }];
-  };
-
-  services.prometheus = {
-    enable = true;
-    port   = 9090;
-
-    scrapeConfigs = [
-      {
-        job_name  = "node";
-        static_configs = [{
-          targets = [ "localhost:${toString config.services.prometheus.exporters.node.port}" ];
-        }];
-      }
-      {
-        job_name = "blackbox";
-        # Blackbox receives "/probe?target=URL" instead of a direct scrape.
-        # Relabels translate each target URL into that format.
-        metrics_path = "/probe";
-        params.module = [ "http_2xx" "icmp" ];
-        static_configs = [{
-          targets = [
-            "http://localhost:30800"    # Vaultwarden
-            "http://localhost:30300"    # Gitea
-            "http://127.0.0.1:3001"    # Grafana
-            "1.1.1.1"                   # Ping a internet
-          ];
-        }];
-        relabel_configs = [
-          # Copy the URL to the target parameter
-          { source_labels = [ "__address__" ]; target_label = "__param_target"; }
-          # Use the same URL as the instance label
-          { source_labels = [ "__param_target" ]; target_label = "instance"; }
-          # Redirect the scrape to blackbox instead of the actual target
-          { target_label = "__address__"; replacement = "127.0.0.1:9115"; }
-        ];
-      }
-    ];
-
-    exporters = {
-      node = {
-        enable          = true;
-        port            = 9100;
-        enabledCollectors = [
-          "cpu" "diskstats" "filesystem"
-          "loadavg" "meminfo" "netdev"
-          "systemd" "thermal_zone"
-        ];
-      };
-      blackbox = {
-        enable = true;
-        configFile = pkgs.writeText "blackbox.yml" (builtins.toJSON {
-          modules = {
-            http_2xx.prober = "http";
-            icmp.prober     = "icmp";
-          };
-        });
-      };
-    };
   };
 
   services.traefik.dynamicConfigOptions.http = {
     routers.grafana = {
       rule             = "Host(`angler`)";
       service          = "grafana";
-      # tls.certResolver = "letsencrypt";
     };
     services.grafana.loadBalancer.servers = [
       { url = "http://127.0.0.1:3001"; }

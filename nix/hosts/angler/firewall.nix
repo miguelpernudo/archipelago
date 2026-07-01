@@ -10,7 +10,7 @@
       flush ruleset
       
       define LAN = 192.168.0.0/16
-      define WG = 10.100.0.0/24    # WireGuard client tunnel
+      # define WG = 10.100.0.0/24    # WireGuard client tunnel
       
       table inet filter {
 
@@ -44,7 +44,7 @@
           ip saddr $WG tcp dport {
             80, 443,   # Traefik (Grafana, Vaultwarden, Gitea)
             6443,      # K3s API (kubectl)
-            9090,      # Prometheus (admin)
+            8428,      # VictoriaMetrics
             30220,     # Gitea SSH
           } accept;
 
@@ -52,7 +52,7 @@
           ip saddr $LAN tcp dport {
             80, 443,   # Traefik (Grafana, Vaultwarden, Gitea)
             6443,      # K3s API (kubectl)
-            9090,      # Prometheus (admin)
+            8428,      # VictoriaMetrics
             30220,     # Gitea SSH
           } accept;
 

@@ -19,8 +19,8 @@ behind **Traefik** as the single reverse proxy entry point.
 Traefik: Port 80/443 on host             
 Vaultwarden: `vaultwarden.angler`
 Gitea: `gitea.angler` (SSH via port 30220)
-Grafana: `angler` (port 9090 for Prometheus)
-Prometheus: Port 9090 (LAN only)
+Grafana: `angler`
+VictoriaMetrics: Port 8428 (LAN only)
 
 Kubernetes resources are deployed via k3s auto-manifests
 (`--manifests-dir /etc/k3s-manifests`). No PVCs, single-node
@@ -54,9 +54,17 @@ nix/
 
 - [ ] **Provision Krill with Ansible**: Replace `install.sh` with
         idempotent automation.
-- [ ] **Centralised logging**: Ship Krill logs to Loki on Angler
-        via Promtail; correlate gateway, server, and workstation
-        events in Grafana.
+- [ ] **Replace Prometheus with VictoriaMetrics**: Lower RAM usage,
+        keep Blackbox Exporter, configure short retention.
+- [ ] **Deploy Netbox in k3s**: Model the full network topology
+        (devices, prefixes, IPs, VLANs, circuits).
+- [ ] **BGP dynamic routing**: FRR on Krill + MetalLB or Cilium
+        BGP on Angler. Pod/Service IPs announced automatically
+        to the gateway.
+- [ ] **Network telemetry via sFlow/NetFlow**: Lightweight daemon
+        on Krill sends flow data; goflow2 on Angler processes
+        and forwards to VictoriaMetrics; visualise in Grafana
+        with origin/destination protocol matrices.
 - [ ] **Firewall audit logging**: Log dropped packets on Krill
         (nftables `log prefix`) to detect port scans and
         suspicious traffic.
@@ -69,5 +77,3 @@ nix/
         connection.
 - [ ] **TLS via Let's Encrypt**: Enable Traefik's certResolver
         once a public domain points at the VPS bridge.
-- [ ] **eBPF observability**: Explore bpftrace and eBPF tooling
-        for low-overhead network and performance debugging.
