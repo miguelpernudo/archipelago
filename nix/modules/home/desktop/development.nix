@@ -6,12 +6,7 @@
     opencode-desktop
     lazygit
 
-    go
-    gopls
-    gotools
-    delve
-
-    ansible
-    ansible-lint
+    clang
+    llvm
   ];
 }
