@@ -17,10 +17,11 @@ All services run on **Angler** inside a **k3s** single-node cluster,
 behind **Traefik** as the single reverse proxy entry point.
 
 Traefik: Port 80/443 on host             
-Vaultwarden: `vaultwarden.angler`
-Gitea: `gitea.angler` (SSH via port 30220)
 Grafana: `angler`
 VictoriaMetrics: Port 8428 (LAN only)
+FreeRADIUS: Port 1812-1813/udp (LAN only)
+Netbox: `netbox.angler`
+goflow2: Port 2055/udp (NetFlow collector)
 
 Kubernetes resources are deployed via k3s auto-manifests
 (`--manifests-dir /etc/k3s-manifests`). No PVCs, single-node
@@ -45,7 +46,7 @@ nix/
     home/           Home-manager user configs
     network/        DNS, traffic control, etc.
     security/       Audit, AppArmor, doas
-    services/       k3s, Traefik, Vaultwarden, Gitea, Docker, SSH, etc.
+    services/       k3s, Traefik, Docker, SSH, FreeRADIUS, Netbox, goflow2
     profiles/       Minimal / headless presets
 .github/workflows/  CI (shellcheck, nftables validation, nix flake check)
 ```
@@ -54,17 +55,15 @@ nix/
 
 - [ ] **Provision Krill with Ansible**: Replace `install.sh` with
         idempotent automation.
-- [ ] **Replace Prometheus with VictoriaMetrics**: Lower RAM usage,
-        keep Blackbox Exporter, configure short retention.
-- [ ] **Deploy Netbox in k3s**: Model the full network topology
-        (devices, prefixes, IPs, VLANs, circuits).
+- [ ] **FreeRADIUS on Angler**: Native NixOS service, WPA2-Enterprise
+        auth for Krill's hostapd via RADIUS.
+- [ ] **Netbox in k3s (or standalone)**: Model the full network
+        topology (devices, prefixes, IPs, VLANs, circuits).
+- [ ] **goflow2 on Angler**: NetFlow v5/v9 collector on UDP 2055,
+        metrics to VictoriaMetrics; softflowd on Krill sends flows.
 - [ ] **BGP dynamic routing**: FRR on Krill + MetalLB or Cilium
         BGP on Angler. Pod/Service IPs announced automatically
         to the gateway.
-- [ ] **Network telemetry via sFlow/NetFlow**: Lightweight daemon
-        on Krill sends flow data; goflow2 on Angler processes
-        and forwards to VictoriaMetrics; visualise in Grafana
-        with origin/destination protocol matrices.
 - [ ] **Firewall audit logging**: Log dropped packets on Krill
         (nftables `log prefix`) to detect port scans and
         suspicious traffic.
