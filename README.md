@@ -1,13 +1,13 @@
-# NetDev Infra
+# Archipelago
 
-Monorepo for my homelab: a reproducible, self-hosted infrastructure
-running on mixed hardware with Alpine Linux (one host) and NixOS (two hosts).
+Monorepo for my workstation and homelab: a reproducible, self-hosted infrastructure
+running on mixed hardware with Alpine Linux (*Krill*) and NixOS (*Angler*, *"Orca"*).
 
 ## Network
 
-All traffic enters through the **Krill** gateway. It handles NAT, DNS, DHCP, Wi-Fi (hostapd), and traffic shaping (HTB QoS via tc).
+Currently, all traffic enters through ISP Router, the **Krill** gateway acts as a secure and isolated access point. It handles NAT, DNS, DHCP, and traffic shaping (HTB QoS via TC).
 
- **WireGuard** connectivity is delegated to a separate bridge node
+**WireGuard** connectivity is delegated to a separate bridge node
 (not on any machine in this repo). Angler connects as a WG client
 for remote access and service exposure.
 
@@ -33,46 +33,20 @@ in NixOS is `networking.nftables.ruleset`.
 ## Structure
 
 ```
-gateway/            Alpine config (install.sh, nftables, hostapd, tc, health)
+gateway/            Alpine config (install.sh, nftables, hostapd, scripts...)
 nix/
   flake.nix         Nix flake entry point
   hosts/
-    angler/         NixOS configuration for Angler server
-    orca/           NixOS configuration for Orca workstation
+    angler/         NixOS configuration for Angler (homelab)
+    orca/           NixOS configuration for Orca (workstation)
   modules/
-    core/           Base system settings (locale, nix, etc.)
-    desktop/        Desktop environments (KDE, GNOME, Wayfire)
-    hardware/       Hardware-specific modules (TLP, etc.)
+    core/           Base system settings (locale, nix...)
+    desktop/        Desktop related (GNOME, gaming...)
+    hardware/       Hardware-specific modules (TLP...)
     home/           Home-manager user configs
     network/        DNS, traffic control, etc.
-    security/       Audit, AppArmor, doas
-    services/       k3s, Traefik, Docker, SSH, FreeRADIUS, Netbox, goflow2
-    profiles/       Minimal / headless presets
+    security/       Audit, AppArmor...
+    services/       k3s, Traefik, Docker...
+    profiles/       Minimal/headless presets
 .github/workflows/  CI (shellcheck, nftables validation, nix flake check)
 ```
-
-## Roadmap
-
-- [ ] **Provision Krill with Ansible**: Replace `install.sh` with
-        idempotent automation.
-- [ ] **FreeRADIUS on Angler**: Native NixOS service, WPA2-Enterprise
-        auth for Krill's hostapd via RADIUS.
-- [ ] **Netbox in k3s (or standalone)**: Model the full network
-        topology (devices, prefixes, IPs, VLANs, circuits).
-- [ ] **goflow2 on Angler**: NetFlow v5/v9 collector on UDP 2055,
-        metrics to VictoriaMetrics; softflowd on Krill sends flows.
-- [ ] **BGP dynamic routing**: FRR on Krill + MetalLB or Cilium
-        BGP on Angler. Pod/Service IPs announced automatically
-        to the gateway.
-- [ ] **Firewall audit logging**: Log dropped packets on Krill
-        (nftables `log prefix`) to detect port scans and
-        suspicious traffic.
-- [ ] **Backup infrastructure**: Borg backups from Angler and Orca
-        to Krill's HDD over SSH; encrypted, deduplicated, scheduled.
-- [ ] **Network simulation with Containerlab**: Model and test LAN
-        topology, firewall rules, and routing before production.
-- [ ] **Dedicated VPN bridge on a VPS**: WireGuard server in the
-        cloud for stable remote access independent of residential
-        connection.
-- [ ] **TLS via Let's Encrypt**: Enable Traefik's certResolver
-        once a public domain points at the VPS bridge.
