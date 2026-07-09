@@ -4,8 +4,6 @@
         idempotent automation.
 - [ ] **FreeRADIUS on Angler**: Native NixOS service, WPA2-Enterprise
         auth for Krill's hostapd via RADIUS.
-- [ ] **Netbox in k3s (or standalone)**: Model the full network
-        topology (devices, prefixes, IPs, VLANs, circuits).
 - [ ] **goflow2 on Angler**: NetFlow v5/v9 collector on UDP 2055,
         metrics to VictoriaMetrics; softflowd on Krill sends flows.
 - [ ] **Firewall audit logging**: Log dropped packets on Krill
