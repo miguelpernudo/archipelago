@@ -1,7 +1,7 @@
 # Archipelago
 
 Monorepo for my workstation and homelab: a reproducible, self-hosted infrastructure
-running on mixed hardware with Alpine Linux (*Krill*) and NixOS (*Angler*, *"Orca"*).
+running on mixed hardware with Alpine Linux (*Krill*) and NixOS (*Angler*, *Orca*).
 
 ## Network
 
