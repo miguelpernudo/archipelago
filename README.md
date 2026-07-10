@@ -2,7 +2,7 @@
 
 Monorepo for my workstation and homelab: a network-focused infrastructure
 built for learning low-level networking, routing protocols, eBPF, and access
-control — all declared as code via NixOS.
+control. All declared as code.
 
 ## Architecture
 
@@ -22,8 +22,6 @@ graph TD
 ## Observability
 
 All telemetry converges on **Angler**:
-
-| Source | Method | Storage |
 
 System (CPU, mem, disk), with node_exporter in VictoriaMetrics
 BGP sessions, with FRR Prometheus exporter in VictoriaMetrics
