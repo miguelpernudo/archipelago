@@ -27,8 +27,6 @@ in
         params.module = [ "http_2xx" "icmp" ];
         static_configs = [{
           targets = [
-            "http://localhost:30800"
-            "http://localhost:30300"
             "http://127.0.0.1:3001"
             "1.1.1.1"
           ];
@@ -88,7 +86,7 @@ in
     enable = true;
     settings = {
       server = {
-        http_addr = "127.0.0.1";
+        http_addr = "0.0.0.0";
         http_port = 3001;
         domain    = "angler";
       };
@@ -108,16 +106,6 @@ in
       url       = "http://localhost:8428";
       isDefault = true;
     }];
-  };
-
-  services.traefik.dynamicConfigOptions.http = {
-    routers.grafana = {
-      rule             = "Host(`angler`)";
-      service          = "grafana";
-    };
-    services.grafana.loadBalancer.servers = [
-      { url = "http://127.0.0.1:3001"; }
-    ];
   };
 
   sops.secrets = {

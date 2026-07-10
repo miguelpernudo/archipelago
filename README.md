@@ -1,52 +1,75 @@
 # Archipelago
 
-Monorepo for my workstation and homelab: a reproducible, self-hosted infrastructure
-running on mixed hardware with Alpine Linux (*Krill*) and NixOS (*Angler*, *Orca*).
+Monorepo for my workstation and homelab: a network-focused infrastructure
+built for learning low-level networking, routing protocols, eBPF, and access
+control — all declared as code via NixOS.
 
-## Network
+## Architecture
 
-Currently, all traffic enters through ISP Router, the **Krill** gateway acts as a secure and isolated access point. It handles NAT, DNS, DHCP, and traffic shaping (HTB QoS via TC).
+```
+   ISP Router
+       │
+       │ (uplink, DHCP client)
+       ▼
+ ┌─────────────┐
+ │   Angler    │  NixOS. Frontier router, control & management plane
+ │ i5-4590     │  FRRouting + BGP, nftables/eBPF firewall,
+ │ 6 GB RAM    │  Kea (DHCP), Unbound (DNS), FreeRADIUS (802.1X),
+ │             │  GoFlow2 (NetFlow), VictoriaMetrics + Grafana
+ └──────┬──────┘
+        │ (private LAN, USB Ethernet)
+        ▼
+ ┌─────────────┐
+ │   Krill     │  Alpine. Access edge
+ │ APU2        │  hostapd (WPA2-Enterprise), softflowd,
+ │ 4 GB RAM    │  nftables (minimal)
+ └─────────────┘
+        │
+        ▼
+   WiFi clients (802.1X auth via RADIUS)
+```
 
-**WireGuard** connectivity is delegated to a separate bridge node
-(not on any machine in this repo). Angler connects as a WG client
-for remote access and service exposure.
+- **ISP router**: uplink only. DHCP, NAT, and DNS are delegated.
+- **Angler**: default gateway for the private network. Routes, firewalls,
+  authenticates, and observes.
+- **Krill**: pure access layer. Bridges WiFi clients to the LAN; no
+  routing, no DHCP, no DNS.
 
-## Services
+## Observability
 
-All services run on **Angler** inside a **k3s** single-node cluster,
-behind **Traefik** as the single reverse proxy entry point.
+All telemetry converges on **Angler**:
 
-Traefik: Port 80/443 on host             
-Grafana: `angler`
-VictoriaMetrics: Port 8428 (LAN only)
-FreeRADIUS: Port 1812-1813/udp (LAN only)
-Netbox: `netbox.angler`
-goflow2: Port 2055/udp (NetFlow collector)
+| Source | Method | Storage |
 
-Kubernetes resources are deployed via k3s auto-manifests
-(`--manifests-dir /etc/k3s-manifests`). No PVCs, single-node
-storage uses hostPath.
+System (CPU, mem, disk), with node_exporter in VictoriaMetrics
+BGP sessions, with FRR Prometheus exporter in VictoriaMetrics
+NetFlow/IPFIX, with GoFlow2 collector in VictoriaMetrics
+DHCP leases, with Kea Prometheus endpoint in VictoriaMetrics
+DNS queries, with Unbound Prometheus endpoint in VictoriaMetrics
+eBPF/XDP stats, with custom exporter in VictoriaMetrics
+Packet drops, with nftables log → Loki in VictoriaLogs
+Blackbox probes, with blackbox_exporter in VictoriaMetrics
 
-Firewall rules are defined per-host as raw `nftables` rulesets,
-in NixOS is `networking.nftables.ruleset`.
+Grafana provides dashboards for BGP state, top talkers, traffic volumes,
+DHCP pool usage, DNS performance, and firewall drops.
 
 ## Structure
 
 ```
-gateway/            Alpine config (install.sh, nftables, hostapd, scripts...)
+gateway/            Alpine config (install.sh, nftables, hostapd...)
 nix/
   flake.nix         Nix flake entry point
   hosts/
-    angler/         NixOS configuration for Angler (homelab)
-    orca/           NixOS configuration for Orca (workstation)
+    angler/         NixOS: router, firewall, observability
+    orca/           NixOS: daily driver workstation
   modules/
     core/           Base system settings (locale, nix...)
     desktop/        Desktop related (GNOME, gaming...)
-    hardware/       Hardware-specific modules (TLP...)
+    hardware/       Hardware-specific (TLP...)
     home/           Home-manager user configs
-    network/        DNS, traffic control, etc.
-    security/       Audit, AppArmor...
-    services/       k3s, Traefik, Docker...
+    network/        DNS, Kea, traffic control, eBPF
+    security/       Audit, AppArmor, 802.1X
+    services/       FRR, FreeRADIUS, Grafana, GoFlow2
     profiles/       Minimal/headless presets
 .github/workflows/  CI (shellcheck, nftables validation, nix flake check)
 ```

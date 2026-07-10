@@ -12,4 +12,3 @@ ip link set "$IFACE" up
 log "Restarting networking stack"
 rc-service networking restart
 rc-service hostapd restart
-rc-service dnsmasq restart

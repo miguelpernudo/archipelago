@@ -20,6 +20,8 @@
     ### Services
     ../../modules/services/ssh.nix
     ../../modules/services/observability.nix
+    ../../modules/services/freeradius.nix
+    ../../modules/services/goflow2.nix
 
     ### Profiles
     ../../modules/profiles/minimal.nix
