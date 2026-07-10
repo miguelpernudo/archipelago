@@ -1,6 +1,0 @@
-title = "netdev-infra gitleaks config"
-
-[allowlist]
-  description = "dnscrypt-proxy minisign public key"
-  paths = ['''gateway/etc/dnscrypt-proxy/dnscrypt-proxy.toml''']
-  regexes = ['''minisign_key\s*=\s*'RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3''']
