@@ -8,17 +8,16 @@ control — all declared as code via NixOS.
 
 ```mermaid
 graph TD
-    ISP[ISP Router] -->|uplink, DHCP client| Angler[Kea, Unbound, FreeRadius]
+    ISP[ISP Router] -->|uplink, DHCP client| Angler[Angler\nKea, Unbound, FreeRadius]
     Angler -->|USB Eth| SWITCH[Switch]
-    SWITCH --> Krill[hostapd, traffic control]
+    SWITCH --> Krill[Krill\nhostapd, traffic control]
     Krill -.->|wlan0| CLIENTS[WiFi clients]
 ```
 
 - **ISP router**: uplink only. DHCP, NAT, and DNS are delegated.
 - **Angler**: default gateway for the private network. Routes, firewalls,
   authenticates, and observes.
-- **Krill**: pure access layer. Bridges WiFi clients to the LAN; no
-  routing, no DHCP, no DNS.
+- **Krill**: pure access layer. Bridges WiFi clients to the LAN.
 
 ## Observability
 
