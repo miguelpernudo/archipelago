@@ -1,23 +1,5 @@
 This script configures Krill as a lightweight Wi-Fi access point. DHCP, DNS, and routing are delegated to ***Angler***.
 
-## Architecture
-
-```mermaid
-graph LR
-    subgraph Angler
-        Kea[Kea DHCP\n+ Unbound DNS]
-    end
-
-    subgraph Krill
-        A[nftables] <--> B[hostapd]
-        B <--> C[wlan0\nbridge]
-    end
-
-    C <--> D[Wi-Fi Clients]
-    Kea -.->|DHCP| D
-    A <--> E[eth0\n→ Angler LAN]
-```
-
 Krill is a pure access layer: it bridges WiFi to the LAN and lets Angler handle all network services (routing, firewall, DHCP, DNS, observability).
 
 ## Prerequisites

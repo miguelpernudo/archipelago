@@ -6,27 +6,12 @@ control — all declared as code via NixOS.
 
 ## Architecture
 
-```
-   ISP Router
-       │
-       │ (uplink, DHCP client)
-       ▼
- ┌─────────────┐
- │   Angler    │  NixOS. Frontier router, control & management plane
- │ i5-4590     │  FRRouting + BGP, nftables/eBPF firewall,
- │ 6 GB RAM    │  Kea (DHCP), Unbound (DNS), FreeRADIUS (802.1X),
- │             │  GoFlow2 (NetFlow), VictoriaMetrics + Grafana
- └──────┬──────┘
-        │ (private LAN, USB Ethernet)
-        ▼
- ┌─────────────┐
- │   Krill     │  Alpine. Access edge
- │ APU2        │  hostapd (WPA2-Enterprise), softflowd,
- │ 4 GB RAM    │  nftables (minimal)
- └─────────────┘
-        │
-        ▼
-   WiFi clients (802.1X auth via RADIUS)
+```mermaid
+graph TD
+    ISP[ISP Router] -->|uplink, DHCP client| Angler[Kea, Unbound, FreeRadius]
+    Angler -->|USB Eth| SWITCH[Switch]
+    SWITCH --> Krill[hostapd, traffic control]
+    Krill -.->|wlan0| CLIENTS[WiFi clients]
 ```
 
 - **ISP router**: uplink only. DHCP, NAT, and DNS are delegated.
