@@ -27,6 +27,7 @@ jobs:
       - name: Validate hostapd
         run: |
           sudo apt-get install -y -qq hostapd gettext
+          sudo modprobe mac80211_hwsim
           RADIUS_SECRET=dummy_test_pass \
             envsubst '${RADIUS_SECRET}' < bridge/etc/hostapd/hostapd.conf > /tmp/hostapd.test.conf
           sudo hostapd -t /tmp/hostapd.test.conf
