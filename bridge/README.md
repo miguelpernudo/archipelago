@@ -35,7 +35,7 @@ Krill is a pure access layer: it bridges WiFi to the LAN and lets Angler handle 
 │   │   └── krill
 │   ├── network
 │   │   └── interfaces
-│   ├── nftables.nft
+
 │   └── tc.qos
 ├── health
 │   ├── checks/
@@ -50,8 +50,6 @@ Krill is a pure access layer: it bridges WiFi to the LAN and lets Angler handle 
 
 **hostapd**: Turns `wlan0` into a Wi-Fi AP (SSID, channel, WPA2).
 
-**nftables**: Minimal firewall — management access only.
-
 **Traffic control**: HTB hierarchy for QoS on `eth0`.
 
 ## Maintenance
@@ -59,11 +57,10 @@ Krill is a pure access layer: it bridges WiFi to the LAN and lets Angler handle 
 ```sh
 # Check service status
 rc-service hostapd status
-rc-service nftables status
 
 # Verify Wi-Fi interface
 iw dev wlan0 info
 
-# Inspect firewall rules
-nft list ruleset
+# Inspect traffic control
+tc -s qdisc show dev wlan0
 ```

@@ -15,6 +15,9 @@
     ] ++ (with gnomeExtensions; [
     vitals
     blur-my-shell
+    command-menu-2
+    tiling-shell
+    tiling-assistant
     just-perfection
     appindicator
     caffeine

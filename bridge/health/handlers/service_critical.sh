@@ -4,7 +4,7 @@
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] [service-critical] $*" | tee -a "$LOG"; }
 
 log "Multiple services down, restarting all"
-for svc in hostapd nftables; do
+for svc in hostapd; do
     rc-service "$svc" restart
 done
 

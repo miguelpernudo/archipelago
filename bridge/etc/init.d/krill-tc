@@ -6,7 +6,7 @@ description="Krill traffic control"
 
 depend() {
     need net
-    after nftables
+    after net
 }
 
 start() {

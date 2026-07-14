@@ -5,8 +5,8 @@
     ./audio.nix
     ./gaming.nix
     ./fonts.nix
-    #./qtile.nix
     ./gnome.nix
+    #./cosmic.nix
   ];
 
   services.xserver.enable  = true;

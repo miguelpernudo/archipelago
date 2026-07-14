@@ -1,7 +1,7 @@
 #!/bin/sh
 
 failed=0
-for svc in hostapd nftables; do
+for svc in hostapd; do
     if ! rc-service "$svc" status > /dev/null 2>&1; then
         failed=$((failed + 1))
     fi
