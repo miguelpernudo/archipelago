@@ -17,5 +17,5 @@
     };
   };
   
-  networking.nameservers = [ "9.9.9.9" "1.1.1.1" ];
+  networking.nameservers = [ "127.0.0.1" "9.9.9.9" ];
 }

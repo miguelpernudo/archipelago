@@ -1,5 +1,5 @@
 # Validates homelab configurations in every push/pull request.
-# - gateway: shell scripts + nftables + hostapd
+# - bridge: shell scripts + hostapd
 # - nix: evaluates the flake (syntax and module options)
 
 name: CI
@@ -7,8 +7,8 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  gateway:
-    name: Gateway (Alpine)
+  bridge:
+    name: Bridge (Alpine)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,22 +18,17 @@ jobs:
 
       - name: Shellcheck scripts
         run: |
-          touch gateway/secrets.env
-          shellcheck -x gateway/install.sh gateway/health/*.sh gateway/etc/init.d/*
+          touch bridge/secrets.env
+          shellcheck -x bridge/install.sh bridge/health/*.sh bridge/etc/init.d/*
 
       - name: Verify POSIX syntax
-        run: sh -n gateway/install.sh gateway/health/*.sh
-
-      - name: Validate nftables
-        run: |
-          sudo apt-get install -y -qq nftables
-          sudo nft -c -f gateway/etc/nftables.nft
+        run: sh -n bridge/install.sh bridge/health/*.sh
 
       - name: Validate hostapd
         run: |
           sudo apt-get install -y -qq hostapd gettext
-          WPA_PASSPHRASE=dummy_test_pass \
-            envsubst '${WPA_PASSPHRASE}' < gateway/etc/hostapd/hostapd.conf > /tmp/hostapd.test.conf
+          RADIUS_SECRET=dummy_test_pass \
+            envsubst '${RADIUS_SECRET}' < bridge/etc/hostapd/hostapd.conf > /tmp/hostapd.test.conf
           sudo hostapd -t /tmp/hostapd.test.conf
 
   nix:
@@ -42,17 +37,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # cachix/install-nix-action installs Nix on the runner.
-      # If the flake's nixpkgs version changes, update
-      # the nix_path to match.
       - name: Install nix
         uses: cachix/install-nix-action@v27
         with:
           nix_path: nixpkgs=channel:nixos-26.05
 
-      # Evaluates the Flake file without building anything. Detects
-      # syntax errors, invalid module options, broken
-      # references, etc.
       - name: Evaluate flake
         run: nix flake check
         working-directory: nix

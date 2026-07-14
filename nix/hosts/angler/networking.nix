@@ -3,24 +3,28 @@
 {
   imports = [
     ./firewall.nix
-    
+
     ../../modules/network/dns.nix
-    #../../modules/network/trafficcontrol.nix
-    #../../modules/network/ebpf.nix
+    ../../modules/network/kea.nix
+    ../../modules/network/unbound.nix
   ];
 
   networking.hostName = hostname;
 
-  # Choose one networking backend.
-  networking.networkmanager.enable = lib.mkDefault false; 
+  networking.networkmanager.enable = lib.mkDefault false;
   networking.useNetworkd = true;
 
-  # systemd.network.networks."10-ethernet" = {
-  #   matchConfig.Name = "en*";
-  #   networkConfig = {
-  #     Address = "192.168.0.35/24";
-  #     Gateway = "192.168.0.1";
-  #     DNS = [ "9.9.9.9" "1.1.1.1" ];
-  #   };
-  # };
+  systemd.network.networks."10-wan" = {
+    matchConfig.Name = "enp*";
+    networkConfig.DHCP = "yes";
+  };
+
+  systemd.network.networks."20-lan" = {
+    matchConfig.Name = "enx*";
+    networkConfig = {
+      Address = "10.10.0.1/24";
+      DHCPServer = false;
+      LinkLocalAddressing = "no";
+    };
+  };
 }

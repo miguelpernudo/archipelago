@@ -6,7 +6,8 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 set -a
-. "$SCRIPT_DIR/config.sh"  # shellcheck disable=SC1091  # resolved at runtime via SCRIPT_DIR
+# shellcheck disable=SC1091  # resolved at runtime via SCRIPT_DIR
+. "$SCRIPT_DIR/config.sh"
 set +a
 
 mkdir -p "$STATE_DIR"

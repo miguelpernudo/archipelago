@@ -38,7 +38,7 @@ DHCP pool usage, DNS performance, and firewall drops.
 ## Structure
 
 ```
-gateway/            Alpine config (install.sh, nftables, hostapd...)
+bridge/             Alpine config (install.sh, hostapd, tc.qos...)
 nix/
   flake.nix         Nix flake entry point
   hosts/
