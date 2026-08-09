@@ -6,8 +6,6 @@
 
 - [x] **Kea + Unbound**
 
-- [ ] **eBPF/XDP firewall + observability**
-
 - [ ] **Nftables harden + audit logging**
 
 - [ ] **GoFlow2 + NetFlow telemetry**
@@ -17,11 +15,10 @@
 - [ ] **Containerlab for network simulation**
 
 - [ ] **Grafana overhaul**
-Replace the generic system dashboard with network-focused views.
 
 ---
 
-- [ ] **Backup infrastructure?*
+- [ ] **Backup infrastructure?**
 
 - [ ] **Dedicated VPS?**
 

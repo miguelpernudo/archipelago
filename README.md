@@ -2,7 +2,7 @@
 
 Monorepo for my workstation and homelab: a network-focused infrastructure
 built for learning low-level networking, routing protocols, eBPF, and access
-control. All declared as code.
+control.
 
 ## Architecture
 
