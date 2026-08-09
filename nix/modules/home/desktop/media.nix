@@ -7,5 +7,6 @@
     vesktop
     spotify
     karere
+    croc
   ];
 }
