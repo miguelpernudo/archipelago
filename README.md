@@ -23,17 +23,16 @@ graph TD
 
 All telemetry converges on **Angler**:
 
-System (CPU, mem, disk), with node_exporter in VictoriaMetrics
-BGP sessions, with FRR Prometheus exporter in VictoriaMetrics
-NetFlow/IPFIX, with GoFlow2 collector in VictoriaMetrics
-DHCP leases, with Kea Prometheus endpoint in VictoriaMetrics
-DNS queries, with Unbound Prometheus endpoint in VictoriaMetrics
-eBPF/XDP stats, with custom exporter in VictoriaMetrics
-Packet drops, with nftables log → Loki in VictoriaLogs
-Blackbox probes, with blackbox_exporter in VictoriaMetrics
+System (CPU, mem, disk), with node_exporter in VictoriaMetrics.
+BGP sessions, with FRR Prometheus exporter in VictoriaMetrics.
+NetFlow/IPFIX, with GoFlow2 collector in VictoriaMetrics.
+DHCP leases, with Kea Prometheus endpoint in VictoriaMetrics.
+DNS queries, with Unbound Prometheus endpoint in VictoriaMetrics.
+eBPF/XDP stats, with custom exporter in VictoriaMetrics.
+Packet drops, with nftables log → Loki in VictoriaLogs.
+Blackbox probes, with blackbox_exporter in VictoriaMetrics.
 
-Grafana provides dashboards for BGP state, top talkers, traffic volumes,
-DHCP pool usage, DNS performance, and firewall drops.
+Grafana provides dashboards for BGP state, top talkers, traffic volumes, DHCP pool usage, DNS performance, and firewall drops.
 
 ## Structure
 
