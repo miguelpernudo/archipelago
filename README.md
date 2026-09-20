@@ -1,15 +1,14 @@
 # Archipelago
 
 Monorepo for my workstation and homelab: a network-focused infrastructure
-built for learning low-level networking, routing protocols, eBPF, and access
-control.
+built for learning low-level networking, routing protocols and eBPF.
 
-## Architecture
+## Homelab architecture
 
 ```mermaid
 graph TD
     ISP[ISP Router] -->|uplink, DHCP client| Angler[Angler\nKea, Unbound, FreeRadius]
-    Angler -->|USB Eth| SWITCH[Switch]
+    Angler --> SWITCH[Switch]
     SWITCH --> Krill[Krill\nhostapd, traffic control]
     Krill -.->|wlan0| CLIENTS[WiFi clients]
 ```
@@ -18,7 +17,7 @@ graph TD
 - **Angler**: default gateway for the private network. Routes, firewalls,
   authenticates, and observes.
 - **Krill**: pure access layer. Bridges WiFi clients to the LAN.
-
+<!--
 ## Observability
 
 All telemetry converges on **Angler**:
@@ -33,8 +32,9 @@ Packet drops, with nftables log → Loki in VictoriaLogs.
 Blackbox probes, with blackbox_exporter in VictoriaMetrics.
 
 Grafana provides dashboards for BGP state, top talkers, traffic volumes, DHCP pool usage, DNS performance, and firewall drops.
+-->
 
-## Structure
+## Repo structure
 
 ```
 bridge/             Alpine config (install.sh, hostapd, tc.qos...)
