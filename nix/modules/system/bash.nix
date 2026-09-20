@@ -60,11 +60,24 @@
         cd -
       }
 
-      # Update and rebuild.
+      # Update, validate and rebuild.
+      # nixupg: flake update + dry-build + boot
+      # nixupg nodry: skip dry-build
+      # nixupg switch: flake update + dry-build + switch 
+      # nixupg switch nodry: skip dry-build + switch
       nixupg() {
+        local action="''${1:-boot}"
+        local verify="''${2:-dry}"
         cd /etc/nixos
         nix flake update
-        nixreb
+        if [[ "$verify" == "dry" ]]; then
+          sudo nixos-rebuild dry-build --flake .#$(hostname)
+        fi
+        if [[ "$action" == "switch" ]]; then
+          nixreb
+        else
+          sudo nixos-rebuild boot --flake .#$(hostname)
+        fi
         cd -
       }
     '';
